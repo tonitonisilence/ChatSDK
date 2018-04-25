@@ -1,7 +1,7 @@
 # ChatSDK
 a sdk for chat
 # 简介
-ChatSDK是一个app端客服系统访客解决方案，既包含了客服聊天逻辑管理，也提供了聊天界面，开发者可方便的将客服功能集成到自己的 APP 中。
+DirectChatSDK是一个app端客服系统访客解决方案，既包含了客服聊天逻辑管理，也提供了聊天界面，开发者可方便的将客服功能集成到自己的 APP 中。
 # 集成
 只需3部就可以将SDK集成到你项目里面
 ### 一.添加SDK进你的项目
@@ -43,17 +43,20 @@ public class SDKDemoApplication extends Application{
      * 初始化SDK
      */
     private void initSDK(){
-        String userId = "applicationuserid";//填入你的用户id
-        String deviceId = "applicatiodeviceId";//填入你的设备id
-        DCSCenterManager.getInstance(this).init(new DCSInitModel().newBuilder()
+        String userId = "applicationuserid";
+        String deviceId = "applicatiodeviceId";
+        DCSCenterManager.getInstance(this).init(new DCSInitModel().newBuilder()
                 .setUserId(userId)//用户id,未登录不传或者传null
-                .setCity("GZ")//定位城市名称*必传
+                .setCity("广东省广州市")//定位城市名称(xx省xx市)
                 .setDeviceId(deviceId)//设备号码*必传
                 .setTitleBackgroundResId(com.bonatone.chatsdk.R.color.dcs_colorTop)//标题栏背景色
                 .setTitleTextColorResId(com.bonatone.chatsdk.R.color.dcs_colorWhite)//标题栏字体颜色
+                .setMenuBackgroundResId(com.bonatone.chatsdk.R.color.dcs_colorTop)//右侧菜单背景颜色
+                .setMenuTextColorResId(com.bonatone.chatsdk.R.color.dcs_colorWhite)//右侧按钮文本颜色
                 .setBackArrowIconResId(com.bonatone.chatsdk.R.drawable.dcs_ic_back)//返回按钮图标
                 .setIsDarkStatusBarText(false)//是否深色通知栏主题
-                .setUserPhotoPath("")//用户头像
+                .setUserPhotoPath("")//用户头像，url地址
+                .setServiceTitleString("在线客服")//在线客服标题
                 .build());
     }
 
@@ -70,7 +73,8 @@ public class SDKDemoApplication extends Application{
                 mFinalCount++;
                 //如果mFinalCount ==1，说明是从后台到前台
                 if (mFinalCount == 1) {
-
+                    //上一次可能为聊天页面或者聊天里面选择页面，需要把推送状态置为false
+                    DCSCenterManager.getInstance(getApplicationContext()).pushOff();
                 }
             }
 
@@ -116,9 +120,12 @@ startActivity(new Intent(this, DCSChatActivity.class));//去到在线客服详�
 ```Java
 //只修改其中的几项
 DCSCenterManager.getInstance(SDKDemoActivity.this)
-                .setTitleBackgroundResId(com.bonatone.chatsdk.R.color.dcs_colorWhite)
-                .setTitleTextColorResId(com.bonatone.chatsdk.R.color.dcs_colorBlack)
-                .setDarkStatusBarText(true);
+         .setTitleBackgroundResId(com.bonatone.chatsdk.R.color.dcs_colorWhite)
+         .setTitleTextColorResId(com.bonatone.chatsdk.R.color.dcs_colorBlack)
+         .setMenuBackgroundResId(com.bonatone.chatsdk.R.color.dcs_colorWhite)//右侧菜单背景颜色
+         .setMenuTextColorResId(com.bonatone.chatsdk.R.color.dcs_colorBlack)//右侧按钮文本颜色
+         .setServiceTitleString("更改在线客服标题")
+         .setDarkStatusBarText(true);
 ```
 通知栏点击跳转
 ```Java
@@ -130,11 +137,17 @@ startActivities(new Intent[]{new Intent(this, DCSMainActivity.class).addFlags(In
                 new Intent(this, DCSChatActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 });
 ```    
-你可以获取未读信息数量，跟最后一条信息的内容
+你可以获取未读信息数量，跟最后一条信息的内容,因为需要从服务端获取最新，所以需要增加异步
 ```Java
-DCSCenterManager.getInstance(this).getNoReadMessage().getCount();//未读数
-DCSCenterManager.getInstance(this).getNoReadMessage().getLast_message_content();//最后一条信息
-DCSCenterManager.getInstance(this).getNoReadMessage().getLast_message_time();//最后一条信息时间
+DCSCenterManager.getInstance(this).getNoReadMessage(new DCSGetNoReadCallBack() {
+            @Override
+            public void onSuccess(DCSQueryMessageModel dcsQueryMessageModel) {
+                ((TextView) findViewById(R.id.text_message)).setText("未读数：" + dcsQueryMessageModel.getCount() +
+                        "\n最后一条信息：" + dcsQueryMessageModel.getLast_message_content() +
+                        "\n最后条信息时间：" + dcsQueryMessageModel.getLast_message_time() +
+                        "\n最后条信息时间戳：" + dcsQueryMessageModel.getLast_message_currentTimeMillis());
+            }
+        });
 ```
 
 # 混淆
