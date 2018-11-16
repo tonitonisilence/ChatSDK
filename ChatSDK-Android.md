@@ -35,29 +35,52 @@ public class SDKDemoApplication extends Application{
     @Override
     public void onCreate() {
         super.onCreate();
-
+        CrashHandler crashHandler = CrashHandler.getInstance();
+        crashHandler.init(getApplicationContext());
         initSDK();
         registerCallBack();
     }
-     /**
-     * 初始化SDK
-     */
+
+
+
     private void initSDK(){
-        String userId = "applicationuserid";
+
+
+
+        String userId = "applicationuserid";
         String deviceId = "applicatiodeviceId";
         DCSCenterManager.getInstance(this).init(new DCSInitModel().newBuilder()
                 .setUserId(userId)//用户id,未登录不传或者传null
                 .setCity("广东省广州市")//定位城市名称(xx省xx市)
                 .setDeviceId(deviceId)//设备号码*必传
-                .setTitleBackgroundResId(com.bonatone.chatsdk.R.color.dcs_colorTop)//标题栏背景色
-                .setTitleTextColorResId(com.bonatone.chatsdk.R.color.dcs_colorWhite)//标题栏字体颜色
-                .setMenuBackgroundResId(com.bonatone.chatsdk.R.color.dcs_colorTop)//右侧菜单背景颜色
-                .setMenuTextColorResId(com.bonatone.chatsdk.R.color.dcs_colorWhite)//右侧按钮文本颜色
+                .setTitleBackgroundResId(com.bonatone.chatsdk.R.color.dcs_colorWhite)//标题背景颜色
+                .setTitleTextColorResId(com.bonatone.chatsdk.R.color.dcs_colorClassiLeveOne)//标题文字颜色
+                .setMenuBackgroundResId(com.bonatone.chatsdk.R.color.dcs_colorWhite)//右侧菜单背景颜色
+                .setMenuTextColorResId(com.bonatone.chatsdk.R.color.dcs_colorClassiLeveOne)//右侧按钮文本颜色
+                .setIsDarkStatusBarText(true)//是否深色主题
                 .setBackArrowIconResId(com.bonatone.chatsdk.R.drawable.dcs_ic_back)//返回按钮图标
-                .setIsDarkStatusBarText(false)//是否深色通知栏主题
-                .setUserPhotoPath("")//用户头像，url地址
+                .setUserPhotoPath("http://")//用户头像，url地址
                 .setServiceTitleString("在线客服")//在线客服标题
+                .setBaseUrl("bonatone.s1.natapp.cc")//测试
+                .setAppName(DCSConfig.CHANNEL_BANK)//小e服务厅
+                //.setAppName(DCSConfig.CHANNEL_CARD)//卡卡君服务厅
+                .setAppVersion("1.1.1")//APP版本
+                .setAppChannel("APP")//APP接入渠道，用来给后台做区分callee
                 .build());
+
+        //初始化之后，监听点击链接事件，跳转到指定webview页面
+        DCSCenterManager.getInstance(this).getUrlClick(new OnViewClickCallBack<String>() {
+            @Override
+            public void onReqSuccess(String result) {
+                if(result!=null){
+                    //填上你自己的webview activity
+                    Intent intent = new Intent(SDKDemoApplication.this, DCSWebViewActivity.class);
+                    intent.putExtra("url",result);
+                    startActivity(intent);
+                }
+
+            }
+        });
     }
 
     //判断应用是否在前后台
@@ -149,7 +172,22 @@ DCSCenterManager.getInstance(this).getNoReadMessage(new DCSGetNoReadCallBack() {
             }
         });
 ```
+需要替换在在线客服页面点击链接跳转地址时
+```Java
+//初始化之后，监听点击链接事件，跳转到指定webview页面
+DCSCenterManager.getInstance(this).getUrlClick(new OnViewClickCallBack<String>() {
+        @Override
+        public void onReqSuccess(String result) {
+            if(result!=null){
+                 //填上你自己的webview activity
+                 Intent intent = new Intent(SDKDemoApplication.this, DCSWebViewActivity.class);
+                 intent.putExtra("url",result);
+                 startActivity(intent);
+            }
 
+        }
+});
+```
 # 混淆
 在你的proguard-rules.pro加入
 ```Java
